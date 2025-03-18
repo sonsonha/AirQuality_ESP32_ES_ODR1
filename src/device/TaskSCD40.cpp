@@ -31,7 +31,7 @@ void SCD40_sensor()
 
     float co2_ppm = (float)co2_raw;
 
-    if (WiFi.status() == WL_CONNECTED && ws.count() > 0)
+    if (ws.count() > 0)
     {
         DynamicJsonDocument doc(512);
         doc["co2_ppm"] = String(co2_ppm, 2);
@@ -48,6 +48,7 @@ void SCD40_sensor()
         publishData("telemetry", "temperature", String(temperature, 2));
         publishData("telemetry", "humidity", String(humidity, 2));
     }
+    sensor.setSCD40MeasurementResult(co2_raw, temperature, humidity);
 }
 
 void TaskSCD40(void *pvParameters)
@@ -65,7 +66,7 @@ void TaskSCD40(void *pvParameters)
     while (true)
     {
         SCD40_sensor();
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(delay_time / portTICK_PERIOD_MS);
     }
 }
 

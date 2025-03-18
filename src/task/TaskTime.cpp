@@ -73,6 +73,20 @@ String formatTime(unsigned long epochTime)
     return String(buffer);
 }
 
+String getDateString(unsigned long epochTime)
+{
+    time_t rawTime = epochTime;
+    struct tm *timeInfo = localtime(&rawTime);
+
+    char buffer[11];
+    sprintf(buffer, "%02d-%02d-%04d",
+            timeInfo->tm_mday,
+            timeInfo->tm_mon + 1,
+            timeInfo->tm_year + 1900);
+
+    return String(buffer);
+}
+
 String formatDateTime(unsigned long epochTime)
 {
     time_t rawTime = epochTime;
@@ -130,6 +144,8 @@ void TaskTime(void *pvParameters)
         {
             ws.textAll(data);
         }
+        String date_LCD = getDateString(currentTime);
+        sensor.setTime(current_time.c_str(), date_LCD.c_str());
 
         vTaskDelay(delay_time / portTICK_PERIOD_MS);
     }

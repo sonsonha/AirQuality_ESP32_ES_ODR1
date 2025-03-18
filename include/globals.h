@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <time.h>
 #include <DHT20.h>
+#include <stdint.h>
 #include "LittleFS.h"
 #include <AsyncTCP.h>
 #include <ArduinoJson.h>
@@ -36,14 +37,20 @@
 // include utils
 #include "./utils/utility_functions.h"
 
-// include libraries of M5
+// include app view
 #ifdef M5_CORE2
-#include <M5Unified.h>
+#include "../src/app/MainAppView.hpp"
 #endif
 
-// include M5 init
 #ifdef M5_CORE2
+// include libraries of M5
+#include <M5Unified.h>
+#include <lgfx/v1/panel/Panel_GDEW0154D67.hpp>
+#include <esp_adc_cal.h>
+
+// include M5 init
 #include "../src/common/M5_init.h"
+#include "../src/task/WakeupDevice.h"
 #endif
 
 #endif

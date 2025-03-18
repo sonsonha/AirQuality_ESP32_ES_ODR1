@@ -13,12 +13,12 @@ void setup()
 
 #ifdef M5_CORE2
   M5_init();
+  WakeupDevice();
 #endif
 
   // FreeRTOS tasks
   if (check_info())
   {
-    connect_intit();
     device_intit();
     task_intit();
   }
@@ -26,6 +26,14 @@ void setup()
 
 void loop()
 {
-  if (ss.available() > 0)
-    gps.encode(ss.read());
+  if (!Wifi_reconnect())
+  {
+    stopServer();
+    return;
+  }
+  MQTT_reconnect();
+  if (!isServerRunning)
+  {
+    connnectWSV();
+  }
 }

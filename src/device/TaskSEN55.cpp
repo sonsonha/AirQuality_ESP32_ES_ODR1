@@ -23,7 +23,7 @@ void SEN55_sensor()
         return;
     }
 
-    if (WiFi.status() == WL_CONNECTED && ws.count() > 0)
+    if (ws.count() > 0)
     {
         DynamicJsonDocument doc(512);
         doc["gauge_pm1"] = String(pm1p0, 2);
@@ -39,13 +39,14 @@ void SEN55_sensor()
     }
     if (tb.connected())
     {
-        publishData("telemetry", "pm1", String(pm1p0, 2));
-        publishData("telemetry", "pm25", String(pm2p5, 2));
-        publishData("telemetry", "pm4", String(pm4p0, 2));
+        publishData("telemetry", "pm1.0", String(pm1p0, 2));
+        publishData("telemetry", "pm2.5", String(pm2p5, 2));
+        publishData("telemetry", "pm4.0", String(pm4p0, 2));
         publishData("telemetry", "pm10", String(pm10p0, 2));
         publishData("telemetry", "voc", String(vocIndex, 2));
         publishData("telemetry", "nox", String(noxIndex, 2));
     }
+    sensor.setSEN55MeasurementResult(pm1p0, pm2p5, pm4p0, pm10p0, temperature, humidity, vocIndex, noxIndex);
 }
 
 void TaskSEN55(void *pvParameters)
@@ -57,7 +58,6 @@ void TaskSEN55(void *pvParameters)
     sen5x.begin(Wire);
     error = sen5x.deviceReset();
 
-    // Bắt đầu phép đo liên tục
     error = sen5x.startMeasurement();
     if (error)
     {
@@ -69,8 +69,8 @@ void TaskSEN55(void *pvParameters)
 
     while (true)
     {
-        SEN55_sensor(); // Đọc và gửi dữ liệu
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        SEN55_sensor();
+        vTaskDelay(delay_time / portTICK_PERIOD_MS);
     }
 }
 

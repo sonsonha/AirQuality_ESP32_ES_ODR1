@@ -87,59 +87,85 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 void startAccessPoint()
 {
+    unsigned long previousMillis = 0;
+    const long interval = 1000;
+    int lastStationCount = -1;
+    int textWidth = 0;
+    int xPosition = 0;
     WiFi.softAP(SSID_AP);
     Serial.println("Access Point Started");
     Serial.print("AP IP address: ");
     Serial.println(WiFi.softAPIP());
-
-#ifdef M5_CORE2
-    M5.Display.setCursor(0, 20);
-    M5.Display.println("Please connect to:");
-    int screenWidth = M5.Lcd.width();
-    int textWidth = M5.Display.textWidth(SSID_AP);
-    M5.Display.setTextColor(CYAN);
-    M5.Display.setCursor((screenWidth - textWidth) / 2, 50);
-    M5.Display.println(SSID_AP);
-    M5.Display.setTextColor(WHITE);
-    M5.Display.setCursor(0, 80);
-    M5.Display.println("Then go to:");
-    String ipAddress = WiFi.softAPIP().toString();
-    textWidth = M5.Display.textWidth(ipAddress);
-    M5.Display.setTextColor(YELLOW);
-    M5.Display.setCursor((screenWidth - textWidth) / 2, 120);
-    M5.Display.println(ipAddress);
-#endif
 
     server_1.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
                 { request->send_P(200, "text/html", index_html); });
 
     server_1.on("/save", HTTP_POST, [](AsyncWebServerRequest *request)
                 {
-        NAME_DEVICE = request->getParam("name_device", true)->value();
-        WIFI_SSID = request->getParam("ssid", true)->value();
-        WIFI_PASS = request->getParam("pass", true)->value();
-        TOKEN = request->getParam("token", true)->value();
-        EMAIL = request->getParam("email", true)->value();
+NAME_DEVICE = request->getParam("name_device", true)->value();
+WIFI_SSID = request->getParam("ssid", true)->value();
+WIFI_PASS = request->getParam("pass", true)->value();
+TOKEN = request->getParam("token", true)->value();
+EMAIL = request->getParam("email", true)->value();
 
-        DynamicJsonDocument doc(512);
-        doc["NAME_DEVICE"] = NAME_DEVICE;
-        doc["WIFI_SSID"] = WIFI_SSID;
-        doc["WIFI_PASS"] = WIFI_PASS;
-        doc["TOKEN"] = TOKEN;
-        doc["EMAIL"] = EMAIL;
+DynamicJsonDocument doc(512);
+doc["NAME_DEVICE"] = NAME_DEVICE;
+doc["WIFI_SSID"] = WIFI_SSID;
+doc["WIFI_PASS"] = WIFI_PASS;
+doc["TOKEN"] = TOKEN;
+doc["EMAIL"] = EMAIL;
 
-        File configFile = LittleFS.open("/info.dat", "w");
-        if (configFile) {
-            serializeJson(doc, configFile);
-            configFile.close();
-            request->send(200, "text/html", "Configuration has been saved. ESP32 will restart...");
-            delay(1000);
-            ESP.restart();
-        } else {
-            request->send(500, "text/html", "Unable to save the configuration.");
-        } });
+File configFile = LittleFS.open("/info.dat", "w");
+if (configFile) {
+serializeJson(doc, configFile);
+configFile.close();
+request->send(200, "text/html", "Configuration has been saved. ESP32 will restart...");
+delay(1000);
+ESP.restart();
+} else {
+request->send(500, "text/html", "Unable to save the configuration.");
+} });
 
     server_1.begin();
+
+#ifdef M5_CORE2
+    while (true)
+    {
+        unsigned long currentMillis = millis();
+        if (currentMillis - previousMillis >= interval)
+        {
+            previousMillis = currentMillis;
+            int currentStationCount = WiFi.softAPgetStationNum();
+            if (currentStationCount != lastStationCount)
+            {
+                lastStationCount = currentStationCount;
+
+                lcd.clear(TFT_BLACK);
+                lcd.waitDisplay();
+                lcd.clear(TFT_WHITE);
+                lcd.waitDisplay();
+
+                if (currentStationCount == 0)
+                {
+                    String apQrcode = "WIFI:T:nopass;S:" + String(SSID_AP) + ";P:;H:false;;";
+                    lcd.qrcode(apQrcode, 35, 35, 130);
+                    textWidth = lcd.textWidth(String(SSID_AP), &fonts::FreeSansBold9pt7b);
+                    xPosition = (lcd.width() - textWidth) / 2;
+                    lcd.drawString(String(SSID_AP), xPosition, 175, &fonts::FreeSansBold9pt7b);
+                }
+                else
+                {
+                    String ipAddress = "http://" + WiFi.softAPIP().toString();
+                    lcd.qrcode(ipAddress, 35, 35, 130);
+                    textWidth = lcd.textWidth(String(ipAddress), &fonts::FreeSansBold9pt7b);
+                    xPosition = (lcd.width() - textWidth) / 2;
+                    lcd.drawString(String(ipAddress), xPosition, 175, &fonts::FreeSansBold9pt7b);
+                }
+                lcd.waitDisplay();
+            }
+        }
+    }
+#endif
 }
 
 void TaskResetDevice(void *pvParameters)

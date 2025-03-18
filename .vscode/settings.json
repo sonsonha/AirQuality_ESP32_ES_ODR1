@@ -23,7 +23,10 @@
         "stdexcept": "cpp",
         "*.tcc": "cpp",
         "bitset": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "atomic": "cpp",
+        "cmath": "cpp",
+        "algorithm": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

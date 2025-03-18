@@ -6,17 +6,8 @@
 extern AsyncWebServer server;
 extern AsyncWebSocket ws;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-    void TaskServer(void *pvParameters);
-
-#ifdef __cplusplus
-}
-#endif
-
 void connnectWSV();
+void stopServer();
+extern bool isServerRunning;
 
 #endif /* INC_TASKSERVER_H_ */

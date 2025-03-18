@@ -51,28 +51,3 @@ void stopServer()
         isServerRunning = false;
     }
 }
-
-void TaskServer(void *pvParameters)
-{
-    while (true)
-    {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            if (!isServerRunning)
-            {
-                connnectWSV();
-            }
-        }
-        else
-        {
-            stopServer();
-        }
-
-        vTaskDelay(delay_connect / portTICK_PERIOD_MS);
-    }
-}
-
-void server_init()
-{
-    xTaskCreate(TaskServer, "TaskServer", 8192, NULL, 1, NULL);
-}

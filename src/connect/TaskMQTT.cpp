@@ -81,56 +81,42 @@ void publishData(String mode, String feed, String data)
     }
 }
 
-void TaskMQTT(void *pvParameters)
+void MQTT_reconnect()
 {
-    while (WiFi.status() != WL_CONNECTED)
+    if (!tb.connected())
     {
-        vTaskDelay(delay_connect / portTICK_PERIOD_MS);
-    }
+        if (!tb.connect(MQTT_SERVER, TOKEN.c_str(), MQTT_PORT))
+        {
+            Serial.println("Failed to connect");
+            return;
+        }
 
-    while (true)
+        tb.sendAttributeData("macAddress", WiFi.macAddress().c_str());
+
+        Serial.println("Subscribing for RPC...");
+        if (!tb.RPC_Subscribe(callbacks.cbegin(), callbacks.cend()))
+        {
+            Serial.println("Failed to subscribe for RPC");
+            return;
+        }
+
+        if (!tb.Shared_Attributes_Subscribe(attributes_callback))
+        {
+            Serial.println("Failed to subscribe for shared attribute updates");
+            return;
+        }
+
+        Serial.println("Subscribe done");
+
+        if (!tb.Shared_Attributes_Request(attribute_shared_request_callback))
+        {
+            Serial.println("Failed to request for shared attributes");
+            return;
+        }
+        tb.sendAttributeData("localIp", WiFi.localIP().toString().c_str());
+    }
+    else if (tb.connected())
     {
-        if (!tb.connected())
-        {
-            if (!tb.connect(MQTT_SERVER, TOKEN.c_str(), MQTT_PORT))
-            {
-                Serial.println("Failed to connect");
-                return;
-            }
-
-            tb.sendAttributeData("macAddress", WiFi.macAddress().c_str());
-
-            Serial.println("Subscribing for RPC...");
-            if (!tb.RPC_Subscribe(callbacks.cbegin(), callbacks.cend()))
-            {
-                Serial.println("Failed to subscribe for RPC");
-                return;
-            }
-
-            if (!tb.Shared_Attributes_Subscribe(attributes_callback))
-            {
-                Serial.println("Failed to subscribe for shared attribute updates");
-                return;
-            }
-
-            Serial.println("Subscribe done");
-
-            if (!tb.Shared_Attributes_Request(attribute_shared_request_callback))
-            {
-                Serial.println("Failed to request for shared attributes");
-                return;
-            }
-            tb.sendAttributeData("localIp", WiFi.localIP().toString().c_str());
-        }
-        else if (tb.connected())
-        {
-            tb.loop();
-        }
-        vTaskDelay(delay_connect / portTICK_PERIOD_MS);
+        tb.loop();
     }
-}
-
-void mqtt_init()
-{
-    xTaskCreate(TaskMQTT, "TaskMQTT", 8192, NULL, 1, NULL);
 }
