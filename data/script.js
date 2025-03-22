@@ -50,6 +50,10 @@ function onMessage(event) {
     if (data.gauge_voc !== undefined) gauge_voc.refresh(data.gauge_voc);
     if (data.gauge_nox !== undefined) gauge_nox.refresh(data.gauge_nox);
 
+    if (data.gauge_sound !== undefined) gauge_sound.refresh(data.gauge_sound);
+    if (data.gauge_vibration !== undefined) gauge_vibration.refresh(data.gauge_vibration);
+    if (data.gauge_battery !== undefined) gauge_battery.refresh(data.gauge_battery);
+
 }
 
 function initGauges() {
@@ -151,4 +155,37 @@ function initGauges() {
         gaugeWidthScale: 0.6,
         pointer: true
     });
+    gauge_sound = new JustGage({
+        id: "gauge_sound",
+        value: 0,
+        min: 0,
+        max: 120,
+        title: "Sound (dB)",
+        label: "dB",
+        gaugeWidthScale: 0.6,
+        pointer: true
+    });
+
+    gauge_vibration = new JustGage({
+        id: "gauge_vibration",
+        value: 0,
+        min: 0,
+        max: 100,
+        title: "Vibration",
+        label: "Index",
+        gaugeWidthScale: 0.6,
+        pointer: true
+    });
+
+    gauge_battery = new JustGage({
+        id: "gauge_battery",
+        value: 100,
+        min: 0,
+        max: 100,
+        title: "Battery (%)",
+        label: "%",
+        gaugeWidthScale: 0.6,
+        pointer: true
+    });
+
 }

@@ -475,7 +475,6 @@ void StatusView::updateSCD40(uint16_t co2, float temperature, float humidity)
 
 void StatusView::updateMORE(float sound, float vibration, int battery)
 {
-    Serial.println(String(sound) + "-" + String(vibration) + "-" + String(battery));
     char str[32] = {0};
 
     _soundCanvas->clear(TFT_WHITE);

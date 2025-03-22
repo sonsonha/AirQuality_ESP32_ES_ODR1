@@ -32,6 +32,7 @@
 
 #define USER_BUTTON_POWER 42
 #define POWER_HOLD 46
+#define FILESYSTEM LittleFS
 
 #ifndef TXD_GPS
 #define TXD_GPS 18

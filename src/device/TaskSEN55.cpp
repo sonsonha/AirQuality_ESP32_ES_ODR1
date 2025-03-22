@@ -32,6 +32,8 @@ void SEN55_sensor()
         doc["gauge_pm10"] = String(pm10p0, 2);
         doc["gauge_voc"] = String(vocIndex, 2);
         doc["gauge_nox"] = String(noxIndex, 2);
+        doc["gauge_temp"] = String(temperature, 2);
+        doc["gauge_humi"] = String(humidity, 2);
 
         String jsonData;
         serializeJson(doc, jsonData);

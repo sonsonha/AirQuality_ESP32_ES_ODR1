@@ -83,7 +83,21 @@ void updateView()
         sensor.sen55.ambientTemperature,
         sensor.sen55.vocIndex,
         sensor.sen55.noxIndex);
-    statusView.updateNetworkStatus("WIFI", WiFi.status() == WL_CONNECTED ? (WiFi.localIP().toString().c_str()) : "No Internet");
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        if (tb.connected())
+        {
+            statusView.updateNetworkStatus("WIFI", WiFi.localIP().toString().c_str());
+        }
+        else
+        {
+            statusView.updateNetworkStatus("ERROR", "Connect MQTT");
+        }
+    }
+    else
+    {
+        statusView.updateNetworkStatus("ERROR", "No Internet");
+    }
     statusView.updateTime(sensor.timeData.time, sensor.timeData.date);
     statusView.updateMORE(sensor.more_sensor.sound, sensor.more_sensor.vibration, sensor.more_sensor.battery);
     statusView.load();

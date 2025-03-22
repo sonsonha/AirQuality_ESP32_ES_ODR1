@@ -148,6 +148,7 @@ request->send(500, "text/html", "Unable to save the configuration.");
                 if (currentStationCount == 0)
                 {
                     String apQrcode = "WIFI:T:nopass;S:" + String(SSID_AP) + ";P:;H:false;;";
+                    lcd.drawString("Scan me", (lcd.width() - lcd.textWidth("Scan me", &fonts::FreeSansBold9pt7b)) / 2, 15, &fonts::FreeSansBold9pt7b);
                     lcd.qrcode(apQrcode, 35, 35, 130);
                     textWidth = lcd.textWidth(String(SSID_AP), &fonts::FreeSansBold9pt7b);
                     xPosition = (lcd.width() - textWidth) / 2;
@@ -156,6 +157,7 @@ request->send(500, "text/html", "Unable to save the configuration.");
                 else
                 {
                     String ipAddress = "http://" + WiFi.softAPIP().toString();
+                    lcd.drawString("Scan me", (lcd.width() - lcd.textWidth("Scan me", &fonts::FreeSansBold9pt7b)) / 2, 15, &fonts::FreeSansBold9pt7b);
                     lcd.qrcode(ipAddress, 35, 35, 130);
                     textWidth = lcd.textWidth(String(ipAddress), &fonts::FreeSansBold9pt7b);
                     xPosition = (lcd.width() - textWidth) / 2;

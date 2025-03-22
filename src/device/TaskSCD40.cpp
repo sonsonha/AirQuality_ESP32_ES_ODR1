@@ -34,9 +34,7 @@ void SCD40_sensor()
     if (ws.count() > 0)
     {
         DynamicJsonDocument doc(512);
-        doc["co2_ppm"] = String(co2_ppm, 2);
-        doc["gauge_temp"] = String(temperature, 2);
-        doc["gauge_humi"] = String(humidity, 2);
+        doc["gauge_co2"] = String(co2_ppm, 2);
 
         String jsonData;
         serializeJson(doc, jsonData);

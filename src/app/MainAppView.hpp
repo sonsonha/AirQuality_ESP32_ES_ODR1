@@ -141,7 +141,7 @@ private:
 
     // status
     const lgfx::IFont *_statusTitleFont = &fonts::DejaVu18;
-    const lgfx::IFont *_statusMsgFont = &fonts::DejaVu12;
+    const lgfx::IFont *_statusMsgFont = &fonts::DejaVu9;
 
     int32_t _statusBaseCursorX = 2 + 97 + 2;
     int32_t _statusBaseCursorY = 2 + 144 + 2;

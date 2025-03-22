@@ -3,6 +3,8 @@
 #define SOUND_PIN 15
 #define VIBRATION_PIN 13
 
+bool arrange = true;
+
 float sound_value = 0;
 float vibration_value = 0;
 float battery_value = 0;
@@ -13,20 +15,21 @@ void Sound_sensor()
     int count = 0;
     long total = 0;
 
-    // for (int i = 0; i < numSamples; i++)
-    // {
-
-    //     if (rawValue > 0)
-    //     {
-    //         total += rawValue;
-    //         count += 1;
-    //     }
-    // }
     int rawValue = analogRead(SOUND_PIN);
 
-    if (rawValue > 0)
+    for (int i = 0; i < numSamples; i++)
     {
-        sound_value = 20.0 * log10(rawValue);
+
+        if (rawValue > 0)
+        {
+            total += rawValue;
+            count += 1;
+        }
+    }
+
+    if (count > 0)
+    {
+        sound_value = 20.0 * log10(float(rawValue / count));
     }
     else
     {
@@ -37,16 +40,30 @@ void Sound_sensor()
 void Vibration_sensor()
 {
     const int numSamples = 50;
+    int count = 0;
+    long total = 0;
+
     int rawValue = analogRead(VIBRATION_PIN);
 
-    if (rawValue > 0)
-    {
-        vibration_value = float(rawValue) * 5 / 4095;
-    }
-    else
-    {
-        Serial.println("No valid data for VIBRATION sensor");
-    }
+    // for (int i = 0; i < numSamples; i++)
+    // {
+
+    //     if (rawValue > 0)
+    //     {
+    //         total += rawValue;
+    //         count += 1;
+    //     }
+    // }
+
+    // if (count > 0)
+    // {
+    //     vibration_value = float(rawValue / count) * 5 / 4095;
+    // }
+    // else
+    // {
+    //     Serial.println("No valid data for VIBRATION sensor");
+    // }
+    vibration_value = float(rawValue) * 5 / 4095;
 }
 
 void getBattery()
@@ -74,9 +91,9 @@ void send_Value()
     if (ws.count() > 0)
     {
         DynamicJsonDocument doc(512);
-        doc["sound"] = String(sound_value);
-        doc["vibration"] = String(vibration_value);
-        doc["battery"] = String(battery_value);
+        doc["gauge_sound"] = String(sound_value);
+        doc["gauge_vibration"] = String(vibration_value);
+        doc["gauge_battery"] = String(battery_value);
         String jsonData;
         serializeJson(doc, jsonData);
         ws.textAll(jsonData);
@@ -95,10 +112,11 @@ void TaskMore(void *pvParameters)
 {
     while (true)
     {
-        Sound_sensor();
-        Vibration_sensor();
+
+        arrange ? Sound_sensor() : Vibration_sensor();
         getBattery();
         send_Value();
+        arrange = !arrange;
         vTaskDelay(delay_time / portTICK_PERIOD_MS);
     }
 }
