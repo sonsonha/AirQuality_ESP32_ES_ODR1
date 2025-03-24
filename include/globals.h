@@ -37,20 +37,4 @@
 // include utils
 #include "./utils/utility_functions.h"
 
-// include app view
-#ifdef M5_CORE2
-#include "../src/app/MainAppView.hpp"
-#endif
-
-#ifdef M5_CORE2
-// include libraries of M5
-#include <M5Unified.h>
-#include <lgfx/v1/panel/Panel_GDEW0154D67.hpp>
-#include <esp_adc_cal.h>
-
-// include M5 init
-#include "../src/common/M5_init.h"
-#include "../src/task/WakeupDevice.h"
-#endif
-
 #endif

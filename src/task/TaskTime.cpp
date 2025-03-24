@@ -145,7 +145,6 @@ void TaskTime(void *pvParameters)
             ws.textAll(data);
         }
         String date_LCD = getDateString(currentTime);
-        sensor.setTime(current_time.c_str(), date_LCD.c_str());
 
         vTaskDelay(delay_time / portTICK_PERIOD_MS);
     }

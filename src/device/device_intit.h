@@ -3,7 +3,7 @@
 
 #include <globals.h>
 #include "Sensor.h"
-#include "TaskMore.h"
+#include "TaskSensor.h"	
 
 void device_intit();
 
