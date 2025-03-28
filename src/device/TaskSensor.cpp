@@ -1,6 +1,6 @@
 #include "TaskSensor.h"
 
-HardwareSerial RS485Serial(1);
+HardwareSerial RS485Serial(1);  
 
 float noise = 0.0;
 float pressure = 0.0;
@@ -10,6 +10,7 @@ float light_high = 0.0;
 float light_low = 0.0;
 float pm2_5 = 0.0;
 float pm10 = 0.0;
+
 
 void sendRS485Command(byte *command, int commandSize, byte *response, int responseSize)
 {
@@ -22,26 +23,29 @@ void sendRS485Command(byte *command, int commandSize, byte *response, int respon
 
         // In phản hồi byte nhận được từ cảm biến
 
-        // Serial.print("Response: ");
-        // for (int i = 0; i < sizeof(response); i++) {
-        //     Serial.print(response[i], HEX);
-        //     Serial.print(" ");
-        // }
-        // Serial.println();
+        Serial.print("Response: ");
+        for (int i = 0; i < sizeof(response); i++) {
+            Serial.print(response[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
 
+    }
+    else {
+        Serial.println("Failed to read response - - - - - -");
     }
 }
 
 void _sensor()
 {
-    byte NoiseRequest[] = {0x06, 0x03, 0x01, 0xF6, 0x00, 0x01, 0x64, 0x73};
-    byte PressureRequest[] = {0x06, 0x03, 0x01, 0xF9, 0x00, 0x01, 0x54, 0x70};
-    byte PM2_5Request[] = {0x06, 0x03, 0x01, 0xF7, 0x00, 0x01, 0x35, 0xB3};
-    byte PM10Request[] = {0x06, 0x03, 0x01, 0xF8, 0x00, 0x01, 0x05, 0xB0};
-    byte AmbientLight_HighRequest[] = {0x06, 0x03, 0x01, 0xFA, 0x00, 0x01, 0xA4, 0x70};
-    byte AmbientLight_LowRequest[] = {0x06, 0x03, 0x01, 0xFB, 0x00, 0x01, 0xF5, 0xB0};
-    byte TemperatureRequest[] = {0x06, 0x03, 0x01, 0xF5, 0x00, 0x01, 0x94, 0x73};
-    byte HumidityRequest[] = {0x06, 0x03, 0x01, 0xF4, 0x00, 0x01, 0xC5, 0xB3};
+    byte NoiseRequest[] = {0x15, 0x03, 0x01, 0xF6, 0x00, 0x01, 0x66, 0xD0};
+    byte PressureRequest[] = {0x15, 0x03, 0x01, 0xF9, 0x00, 0x01, 0x56, 0xD3};
+    byte PM2_5Request[] = {0x15, 0x03, 0x01, 0xF7, 0x00, 0x01, 0x37, 0x10};
+    byte PM10Request[] = {0x15, 0x03, 0x01, 0xF8, 0x00, 0x01, 0x07, 0x13};
+    byte AmbientLight_HighRequest[] = {0x15, 0x03, 0x01, 0xFA, 0x00, 0x01, 0xA6, 0xD3};
+    byte AmbientLight_LowRequest[] = {0x15, 0x03, 0x01, 0xFB, 0x00, 0x01, 0xF7, 0x13};
+    byte TemperatureRequest[] = {0x15, 0x03, 0x01, 0xF5, 0x00, 0x01, 0x96, 0xD0};
+    byte HumidityRequest[] = {0x15, 0x03, 0x01, 0xF4, 0x00, 0x01, 0xC7, 0x10};
 
     byte response[7];
     
@@ -110,25 +114,6 @@ void _sensor()
     } else {
         Serial.println("Failed to read light low byte");
     }
-
-    // sendRS485Command(AmbientLight_HighRequest, sizeof(AmbientLight_HighRequest), response, sizeof(response));
-    // if (response[1] == 0x03)
-    // {
-    //     int highByte = response[3];  // High Byte
-    //     memset(response, 0, sizeof(response));  // Reset response array
-        
-    //     sendRS485Command(AmbientLight_LowRequest, sizeof(AmbientLight_LowRequest), response, sizeof(response));
-    //     if (response[1] == 0x03)
-    //     {
-    //         int lowByte = response[3];  // Low Byte
-    //         light = (highByte << 8) | lowByte;  // Kết hợp High Byte và Low Byte
-    //         light /= 10.0;  // Chia cho 10 nếu cần thiết (nếu cảm biến trả về 10 lần giá trị thực tế)
-    //     } else {
-    //         Serial.println("Failed to read low byte of light");
-    //     }
-    // } else {
-    //     Serial.println("Failed to read high byte of light");
-    // }
 
     delay(delay_connect);
     memset(response, 0, sizeof(response));	

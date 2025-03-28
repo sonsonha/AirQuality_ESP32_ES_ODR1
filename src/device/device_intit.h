@@ -4,7 +4,7 @@
 #include <globals.h>
 #include "Sensor.h"
 #include "TaskSensor.h"	
-// #include "tasktest.h"
+#include "taskVibration.h"
 
 void device_intit();
 
