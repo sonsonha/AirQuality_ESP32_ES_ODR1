@@ -3,7 +3,7 @@
 // #define SOUND_PIN 15
 
 // #define VIBRATION_PIN 13
-#define VIBRATION_PIN 2
+#define VIBRATION_PIN 1
 
 float vibration_value = 0;
 
@@ -34,7 +34,7 @@ void Vibration_sensor()
     //     Serial.println("No valid data for VIBRATION sensor");
     // }
     vibration_value = float(rawValue) * 5 / 4095;
-    Serial.println("Vibration raw: "+String(rawValue));
+    // Serial.println("Vibration raw: "+String(rawValue));
 }
 
 void send_Value()
@@ -62,7 +62,7 @@ void TaskMore(void *pvParameters)
     {
         Vibration_sensor();
         send_Value();
-        vTaskDelay(delay_time / portTICK_PERIOD_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
 
