@@ -4,38 +4,10 @@
 
 // #define VIBRATION_PIN 13
 #define VIBRATION_PIN 1
+// #define VIBRATION_THRESHOLD 0.01
 
 float vibration_value = 0;
-
-void Vibration_sensor()
-{
-    const int numSamples = 50;
-    int count = 0;
-    long total = 0;
-
-    int rawValue = analogRead(VIBRATION_PIN);
-
-    // for (int i = 0; i < numSamples; i++)
-    // {
-
-    //     if (rawValue > 0)
-    //     {
-    //         total += rawValue;
-    //         count += 1;
-    //     }
-    // }
-
-    // if (count > 0)
-    // {
-    //     vibration_value = float(rawValue / count) * 5 / 4095;
-    // }
-    // else
-    // {
-    //     Serial.println("No valid data for VIBRATION sensor");
-    // }
-    vibration_value = float(rawValue) * 5 / 4095;
-    // Serial.println("Vibration raw: "+String(rawValue));
-}
+float previous_vibration_value = 0;
 
 void send_Value()
 {
@@ -54,6 +26,27 @@ void send_Value()
         Serial.println("Vibration: "+String(vibration_value));
     }
     // sensor.setMOREMeasurementResult(vibration_value);
+}
+
+void Vibration_sensor()
+{
+    const int numSamples = 50;
+    int count = 0;
+    long total = 0;
+
+    int rawValue = analogRead(VIBRATION_PIN);
+
+    vibration_value = (float(rawValue) / 4095) * 2.0; 
+    vibration_value = vibration_value * 9.81;
+
+    // vibration_value = float(rawValue) * 3.3 / 4095;
+    // Serial.println("Vibration raw: "+String(rawValue));
+
+    // if (abs(vibration_value - previous_vibration_value) > VIBRATION_THRESHOLD) {
+    //     send_Value();
+    // }
+
+    // previous_vibration_value = vibration_value;
 }
 
 void TaskMore(void *pvParameters)
