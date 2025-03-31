@@ -2,7 +2,7 @@
 
 HardwareSerial RS485Serial(1);  
 
-float noise = 0.0;
+float sound = 0.0;
 float pressure = 0.0;
 float humidity = 0.0;
 float temperature = 0.0;
@@ -38,7 +38,7 @@ void sendRS485Command(byte *command, int commandSize, byte *response, int respon
 
 void _sensor()
 {
-    byte NoiseRequest[] = {0x15, 0x03, 0x01, 0xF6, 0x00, 0x01, 0x66, 0xD0};
+    byte soundRequest[] = {0x15, 0x03, 0x01, 0xF6, 0x00, 0x01, 0x66, 0xD0};
     byte PressureRequest[] = {0x15, 0x03, 0x01, 0xF9, 0x00, 0x01, 0x56, 0xD3};
     byte pm2p5Request[] = {0x15, 0x03, 0x01, 0xF7, 0x00, 0x01, 0x37, 0x10};
     byte PM10Request[] = {0x15, 0x03, 0x01, 0xF8, 0x00, 0x01, 0x07, 0x13};
@@ -49,13 +49,13 @@ void _sensor()
 
     byte response[7];
     
-    sendRS485Command(NoiseRequest, sizeof(NoiseRequest), response, sizeof(response));
+    sendRS485Command(soundRequest, sizeof(soundRequest), response, sizeof(response));
     if (response[1] == 0x03)
     {
-        noise = (response[3] << 8) | response[4];
-        noise /= 10.0;
+        sound = (response[3] << 8) | response[4];
+        sound /= 10.0;
     } else {
-        Serial.println("Failed to read noise");
+        Serial.println("Failed to read sound");
     }
 
     delay(delay_connect);
@@ -142,7 +142,7 @@ void _sensor()
     delay(delay_connect);
     memset(response, 0, sizeof(response));	
 
-    Serial.println("noise : "+String(noise));
+    Serial.println("sound : "+String(sound));
     Serial.println("pressure: "+String(pressure));
     Serial.println("humidity: "+String(humidity));
     Serial.println("temperature: "+String(temperature));
@@ -154,7 +154,7 @@ void _sensor()
     if (ws.count() > 0)
     {
         DynamicJsonDocument doc(512);
-        doc["gauge_noise"] = String(noise, 2);
+        doc["gauge_sound"] = String(sound, 2);
         doc["gauge_pressure"] = String(pressure, 2);
         doc["gauge_temp"] = String(temperature, 2);
         doc["gauge_humi"] = String(humidity, 2);
@@ -169,7 +169,7 @@ void _sensor()
 
     if (tb.connected())
     {
-        publishData("telemetry", "noise", String(noise, 2));
+        publishData("telemetry", "sound", String(sound, 2));
         publishData("telemetry", "pressure", String(pressure, 2));
         publishData("telemetry", "humidity", String(humidity, 2));
         publishData("telemetry", "temperature", String(temperature, 2));
