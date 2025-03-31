@@ -1,8 +1,8 @@
-// #ifndef INC_TASKSENSOR_H_
-// #define INC_TASKSENSOR_H_
+#ifndef INC_TASKSENSOR_H_
+#define INC_TASKSENSOR_H_
 
-// #include "globals.h"
+#include "globals.h"
 
-// void tasksensor_init();
+void tasksensor_init();
 
-// #endif /* INC_TASKSENSOR_H_ */
+#endif /* INC_TASKSENSOR_H_ */
