@@ -3,7 +3,7 @@
 // #define SOUND_PIN 15
 
 // #define VIBRATION_PIN 13
-#define VIBRATION_PIN 1
+#define VIBRATION_PIN 12
 // #define VIBRATION_THRESHOLD 0.01
 
 float vibration_value = 0;
