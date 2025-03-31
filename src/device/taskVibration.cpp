@@ -3,11 +3,11 @@
 // #define SOUND_PIN 15
 
 // #define VIBRATION_PIN 13
-#define VIBRATION_PIN 12
-// #define VIBRATION_THRESHOLD 0.01
+#define VIBRATION_PIN 1
+#define VIBRATION_THRESHOLD 1
 
 float vibration_value = 0;
-// float previous_vibration_value = 0;
+float previous_vibration_value = 0;
 
 void send_Value()
 {
@@ -39,14 +39,14 @@ void Vibration_sensor()
     // vibration_value = (float(rawValue) / 4095) * 2.0; 
     // vibration_value = vibration_value * 9.81;
 
-    vibration_value = float(rawValue) * 5 / 4095;
+    vibration_value = (float(rawValue) * 5 / 4095) * 10;
     Serial.println("Vibration raw: "+String(rawValue));
 
-    // if (abs(vibration_value - previous_vibration_value) > VIBRATION_THRESHOLD) {
-    //     send_Value();
-    // }
+    if (abs(vibration_value - previous_vibration_value) > VIBRATION_THRESHOLD) {
+        send_Value();
+    }
 
-    // previous_vibration_value = vibration_value;
+    previous_vibration_value = vibration_value;
 }
 
 void TaskMore(void *pvParameters)
