@@ -7,7 +7,7 @@
 // #define VIBRATION_THRESHOLD 0.01
 
 float vibration_value = 0;
-float previous_vibration_value = 0;
+// float previous_vibration_value = 0;
 
 void send_Value()
 {
@@ -36,11 +36,11 @@ void Vibration_sensor()
 
     int rawValue = analogRead(VIBRATION_PIN);
 
-    vibration_value = (float(rawValue) / 4095) * 2.0; 
-    vibration_value = vibration_value * 9.81;
+    // vibration_value = (float(rawValue) / 4095) * 2.0; 
+    // vibration_value = vibration_value * 9.81;
 
-    // vibration_value = float(rawValue) * 3.3 / 4095;
-    // Serial.println("Vibration raw: "+String(rawValue));
+    vibration_value = float(rawValue) * 5 / 4095;
+    Serial.println("Vibration raw: "+String(rawValue));
 
     // if (abs(vibration_value - previous_vibration_value) > VIBRATION_THRESHOLD) {
     //     send_Value();

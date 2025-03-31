@@ -4,7 +4,7 @@
 constexpr uint32_t MAX_MESSAGE_SIZE = 1024U;
 
 // constexpr char TOKEN_1[] = "h2lkjptbe5xtijl0tzet";
-constexpr char TOKEN_1[] = "OSZaVc889cSURmuXaao8";
+constexpr char TOKEN_1[] = "J4px9ZBQqs7I85Tehs9E";
 
 WiFiClient wifiClient;
 Arduino_MQTT_Client mqttClient(wifiClient);
