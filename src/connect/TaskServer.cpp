@@ -1,24 +1,27 @@
 #include "TaskServer.h"
+#include "../common/log.h"
+
+static const char *TAG = "SERVER";
 
 AsyncWebServer server(httpPort);
 AsyncWebSocket ws("/ws");
 
 bool isServerRunning = false;
 
-void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+static void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
+                    AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
     if (type == WS_EVT_CONNECT)
     {
-        Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+        LOG_I(TAG, "WS client #%u connected from %s", client->id(), client->remoteIP().toString().c_str());
     }
     else if (type == WS_EVT_DISCONNECT)
     {
-        Serial.printf("WebSocket client #%u disconnected\n", client->id());
+        LOG_I(TAG, "WS client #%u disconnected", client->id());
     }
     else if (type == WS_EVT_DATA)
     {
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
-
         if (info->opcode == WS_TEXT)
         {
             String message;
@@ -28,7 +31,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     }
 }
 
-void connnectWSV()
+void connectWSV(void)
 {
     ws.onEvent(onEvent);
     server.addHandler(&ws);
@@ -40,14 +43,16 @@ void connnectWSV()
               { request->send(LittleFS, "/styles.css", "text/css"); });
     server.begin();
     isServerRunning = true;
+    LOG_I(TAG, "HTTP + WebSocket server started on port %d", httpPort);
 }
 
-void stopServer()
+void stopServer(void)
 {
     if (isServerRunning)
     {
         ws.closeAll();
         server.end();
         isServerRunning = false;
+        LOG_W(TAG, "Server stopped");
     }
 }

@@ -4,6 +4,6 @@
 #include <globals.h>
 #include "TaskTime.h"
 
-void task_intit();
+void task_init(void);
 
-#endif /* INC_TASKINIT_H_ */
+#endif

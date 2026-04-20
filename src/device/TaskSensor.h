@@ -3,6 +3,6 @@
 
 #include "globals.h"
 
-void tasksensor_init();
+void tasksensor_init(void);
 
-#endif /* INC_TASKSENSOR_H_ */
+#endif

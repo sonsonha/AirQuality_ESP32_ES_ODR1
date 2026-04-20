@@ -1,8 +1,8 @@
-#ifndef INC_TASKMORE_H_
-#define INC_TASKMORE_H_
+#ifndef INC_TASKVIBRATION_H_
+#define INC_TASKVIBRATION_H_
 
 #include "globals.h"
 
-void More_init();
+void vibration_init(void);
 
-#endif /* INC_TASKMORE_H_ */
+#endif

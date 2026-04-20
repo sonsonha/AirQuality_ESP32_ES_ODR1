@@ -1,6 +1,6 @@
 #include "task_init.h"
 
-void task_intit()
+void task_init(void)
 {
-    xTaskCreate(TaskTime, "TaskTime", 2048, NULL, 1, NULL);
+    xTaskCreate(TaskTime, "TaskTime", 4096, NULL, 1, NULL);
 }

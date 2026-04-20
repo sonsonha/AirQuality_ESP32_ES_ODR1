@@ -1,65 +1,52 @@
-#include "TaskVibration.h"
+#include "taskVibration.h"
+#include "../common/sensor_data.h"
+#include "../common/log.h"
 
-// #define SOUND_PIN 15
+static const char *TAG = "VIBRATION";
 
-// #define VIBRATION_PIN 13
-#define VIBRATION_PIN 1
-#define VIBRATION_THRESHOLD 1
+#define VIBRATION_PIN       1
+#define VIBRATION_ADC_MAX   4095
+#define VIBRATION_SCALE     (5.0f / VIBRATION_ADC_MAX * 10.0f)
+#define VIBRATION_THRESHOLD 1.0f
+#define VIBRATION_PERIOD_MS 200
 
-float vibration_value = 0;
-float previous_vibration_value = 0;
+static float previousValue = 0.0f;
 
-void send_Value()
+static void TaskVibration(void *pvParameters)
 {
-    if (ws.count() > 0)
+    LOG_I(TAG, "Vibration task started on GPIO %d", VIBRATION_PIN);
+
+    for (;;)
     {
-        DynamicJsonDocument doc(512);
-        doc["gauge_vibration"] = String(vibration_value);
-        String jsonData;
-        serializeJson(doc, jsonData);
-        ws.textAll(jsonData);
-    }
+        int rawValue = analogRead(VIBRATION_PIN);
+        float value = (float)rawValue * VIBRATION_SCALE;
 
-    if (tb.connected())
-    {
-        publishData("telemetry", "vibration", String(vibration_value));
-        Serial.println("Vibration: "+String(vibration_value));
-    }
-    // sensor.setMOREMeasurementResult(vibration_value);
-}
+        bool thresholdExceeded = fabsf(value - previousValue) > VIBRATION_THRESHOLD;
+        previousValue = value;
 
-void Vibration_sensor()
-{
-    const int numSamples = 50;
-    int count = 0;
-    long total = 0;
+        SensorData_t msg;
+        msg.type = SENSOR_TYPE_VIBRATION;
+        msg.data.vibration.value = value;
+        msg.timestamp_ms = (uint32_t)millis();
 
-    int rawValue = analogRead(VIBRATION_PIN);
+        if (xSensorQueue != NULL)
+        {
+            if (xQueueSend(xSensorQueue, &msg, pdMS_TO_TICKS(50)) != pdPASS)
+            {
+                LOG_W(TAG, "Sensor queue full, dropping vibration reading");
+            }
+        }
 
-    // vibration_value = (float(rawValue) / 4095) * 2.0; 
-    // vibration_value = vibration_value * 9.81;
+        if (thresholdExceeded)
+        {
+            LOG_D(TAG, "Threshold exceeded: %.2f (raw=%d)", value, rawValue);
+        }
 
-    vibration_value = (float(rawValue) * 5 / 4095) * 10;
-    Serial.println("Vibration raw: "+String(rawValue));
-
-    if (abs(vibration_value - previous_vibration_value) > VIBRATION_THRESHOLD) {
-        send_Value();
-    }
-
-    previous_vibration_value = vibration_value;
-}
-
-void TaskMore(void *pvParameters)
-{
-    while (true)
-    {
-        Vibration_sensor();
-        send_Value();
-        vTaskDelay(200 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(VIBRATION_PERIOD_MS));
     }
 }
 
-void More_init()
+void vibration_init(void)
 {
-    xTaskCreate(TaskMore, "TaskMore", 8192, NULL, 1, NULL);
+    xTaskCreate(TaskVibration, "TaskVibration", 4096, NULL, 2, NULL);
 }

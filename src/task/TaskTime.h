@@ -18,4 +18,4 @@ extern String current;
 extern String date;
 extern bool check_different_time;
 
-#endif /* INC_TASKTIME_H_ */
+#endif

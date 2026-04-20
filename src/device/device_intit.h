@@ -2,10 +2,9 @@
 #define INC_DEVICEINIT_H_
 
 #include <globals.h>
-#include "Sensor.h"
-#include "TaskSensor.h"	
+#include "TaskSensor.h"
 #include "taskVibration.h"
 
-void device_intit();
+void device_init(void);
 
-#endif /* INC_DEVICEINIT_H_ */
+#endif

@@ -6,4 +6,4 @@
 #include "TaskWifi.h"
 #include "TaskServer.h"
 
-#endif /* INC_CONNECTINIT_H_ */
+#endif

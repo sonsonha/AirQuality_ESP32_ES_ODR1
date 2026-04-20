@@ -1,10 +1,11 @@
-
 #include "TaskMQTT.h"
+#include "../common/sensor_data.h"
+#include "../common/log.h"
+
+static const char *TAG = "MQTT";
 
 constexpr uint32_t MAX_MESSAGE_SIZE = 1024U;
-
-// constexpr char TOKEN_1[] = "h2lkjptbe5xtijl0tzet";
-constexpr char TOKEN_1[] = "OSZaVc889cSURmuXaao8";
+constexpr uint16_t MQTT_RECONNECT_INTERVAL_MS = 5000U;
 
 WiFiClient wifiClient;
 Arduino_MQTT_Client mqttClient(wifiClient);
@@ -12,112 +13,118 @@ ThingsBoard tb(mqttClient, MAX_MESSAGE_SIZE);
 
 constexpr char LED_STATE_ATTR[] = "ledState";
 
-volatile int ledMode = 0;
-volatile bool ledState = false;
-
-constexpr uint16_t BLINKING_INTERVAL_MS_MIN = 10U;
-constexpr uint16_t BLINKING_INTERVAL_MS_MAX = 60000U;
-volatile uint16_t blinkingInterval = 1000U;
-
-constexpr int16_t telemetrySendInterval = 10000U;
-
-constexpr std::array<const char *, 2U> SHARED_ATTRIBUTES_LIST = {
+constexpr std::array<const char *, 1U> SHARED_ATTRIBUTES_LIST = {
     LED_STATE_ATTR,
 };
 
-void processSharedAttributes(const Shared_Attribute_Data &data)
+static void processSharedAttributes(const Shared_Attribute_Data &data)
 {
     for (auto it = data.begin(); it != data.end(); ++it)
     {
-        // if (strcmp(it->key().c_str(), BLINKING_INTERVAL_ATTR) == 0)
-        // {
-        //     const uint16_t new_interval = it->value().as<uint16_t>();
-        //     if (new_interval >= BLINKING_INTERVAL_MS_MIN && new_interval <= BLINKING_INTERVAL_MS_MAX)
-        //     {
-        //         blinkingInterval = new_interval;
-        //         Serial.print("Blinking interval is set to: ");
-        //         Y
-        //             Serial.println(new_interval);
-        //     }
-        // }
-        // if (strcmp(it->key().c_str(), LED_STATE_ATTR) == 0)
-        // {
-        //     ledState = it->value().as<bool>();
-        // digitalWrite(LED_PIN, ledState);
-        // Serial.print("LED state is set to: ");
-        // Serial.println(ledState);
-        // }
+        if (strcmp(it->key().c_str(), LED_STATE_ATTR) == 0)
+        {
+            bool state = it->value().as<bool>();
+            LOG_I(TAG, "LED state attribute updated: %d", state);
+        }
     }
 }
 
-RPC_Response setLedSwitchValue(const RPC_Data &data)
+static RPC_Response setLedSwitchValue(const RPC_Data &data)
 {
-    Serial.println("Received Switch state");
     bool newState = data;
-    Serial.print("Switch state change: ");
-    Serial.println(newState);
+    LOG_I(TAG, "RPC setLedSwitch: %d", newState);
     return RPC_Response("setLedSwitchValue", newState);
 }
 
 const std::array<RPC_Callback, 1U> callbacks = {
     RPC_Callback{"setLedSwitchValue", setLedSwitchValue}};
 
-const Shared_Attribute_Callback attributes_callback(&processSharedAttributes, SHARED_ATTRIBUTES_LIST.cbegin(), SHARED_ATTRIBUTES_LIST.cend());
-const Attribute_Request_Callback attribute_shared_request_callback(&processSharedAttributes, SHARED_ATTRIBUTES_LIST.cbegin(), SHARED_ATTRIBUTES_LIST.cend());
+const Shared_Attribute_Callback attributes_callback(
+    &processSharedAttributes,
+    SHARED_ATTRIBUTES_LIST.cbegin(),
+    SHARED_ATTRIBUTES_LIST.cend());
 
-void publishData(String mode, String feed, String data)
+const Attribute_Request_Callback attribute_shared_request_callback(
+    &processSharedAttributes,
+    SHARED_ATTRIBUTES_LIST.cbegin(),
+    SHARED_ATTRIBUTES_LIST.cend());
+
+void publishData(const char *mode, const char *feed, float value)
 {
-    if (mode == "attribute")
+    if (xMqttMutex != NULL && xSemaphoreTake(xMqttMutex, pdMS_TO_TICKS(200)) == pdTRUE)
     {
-        tb.sendAttributeData(feed.c_str(), data);
-    }
-    else if (mode == "telemetry")
-    {
-        float value = data.toFloat();
-        tb.sendTelemetryData(feed.c_str(), value);
+        if (strcmp(mode, "attribute") == 0)
+        {
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%.2f", value);
+            tb.sendAttributeData(feed, buf);
+        }
+        else if (strcmp(mode, "telemetry") == 0)
+        {
+            tb.sendTelemetryData(feed, value);
+        }
+        xSemaphoreGive(xMqttMutex);
     }
     else
     {
-        // handle unknown mode
+        LOG_W(TAG, "Could not acquire MQTT mutex for '%s'", feed);
     }
 }
 
-void MQTT_reconnect()
+void publishAttributeString(const char *key, const char *value)
 {
-    if (!tb.connected())
+    if (xMqttMutex != NULL && xSemaphoreTake(xMqttMutex, pdMS_TO_TICKS(200)) == pdTRUE)
     {
-        if (!tb.connect(MQTT_SERVER, TOKEN.c_str(), MQTT_PORT))
-        {
-            Serial.println("Failed to connect");
-            return;
-        }
-
-        tb.sendAttributeData("macAddress", WiFi.macAddress().c_str());
-
-        Serial.println("Subscribing for RPC...");
-        if (!tb.RPC_Subscribe(callbacks.cbegin(), callbacks.cend()))
-        {
-            Serial.println("Failed to subscribe for RPC");
-            return;
-        }
-
-        if (!tb.Shared_Attributes_Subscribe(attributes_callback))
-        {
-            Serial.println("Failed to subscribe for shared attribute updates");
-            return;
-        }
-
-        Serial.println("Subscribe done");
-
-        if (!tb.Shared_Attributes_Request(attribute_shared_request_callback))
-        {
-            Serial.println("Failed to request for shared attributes");
-            return;
-        }
-        tb.sendAttributeData("localIp", WiFi.localIP().toString().c_str());
+        tb.sendAttributeData(key, value);
+        xSemaphoreGive(xMqttMutex);
     }
-    else if (tb.connected())
+}
+
+bool mqttConnect(void)
+{
+    if (tb.connected())
+        return true;
+
+    LOG_I(TAG, "Connecting to %s:%u ...", MQTT_SERVER, MQTT_PORT);
+
+    if (!tb.connect(MQTT_SERVER, TOKEN.c_str(), MQTT_PORT))
+    {
+        LOG_E(TAG, "Connection failed");
+        return false;
+    }
+
+    LOG_I(TAG, "Connected. Subscribing...");
+
+    publishAttributeString("macAddress", WiFi.macAddress().c_str());
+    publishAttributeString("localIp", WiFi.localIP().toString().c_str());
+
+    if (!tb.RPC_Subscribe(callbacks.cbegin(), callbacks.cend()))
+    {
+        LOG_E(TAG, "RPC subscribe failed");
+        return false;
+    }
+
+    if (!tb.Shared_Attributes_Subscribe(attributes_callback))
+    {
+        LOG_E(TAG, "Shared attribute subscribe failed");
+        return false;
+    }
+
+    if (!tb.Shared_Attributes_Request(attribute_shared_request_callback))
+    {
+        LOG_E(TAG, "Shared attribute request failed");
+        return false;
+    }
+
+    LOG_I(TAG, "Subscriptions active");
+    return true;
+}
+
+void mqttLoop(void)
+{
+    if (xMqttMutex != NULL && xSemaphoreTake(xMqttMutex, pdMS_TO_TICKS(100)) == pdTRUE)
     {
         tb.loop();
+        xSemaphoreGive(xMqttMutex);
     }
 }

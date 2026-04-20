@@ -5,7 +5,9 @@
 
 extern ThingsBoard tb;
 
-void MQTT_reconnect();
-void publishData(String mode, String feed, String data);
+void publishData(const char *mode, const char *feed, float value);
+void publishAttributeString(const char *key, const char *value);
+bool mqttConnect(void);
+void mqttLoop(void);
 
-#endif /* INC_TASKMQTT_H_ */
+#endif

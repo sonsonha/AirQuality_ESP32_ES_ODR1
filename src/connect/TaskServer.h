@@ -5,9 +5,9 @@
 
 extern AsyncWebServer server;
 extern AsyncWebSocket ws;
-
-void connnectWSV();
-void stopServer();
 extern bool isServerRunning;
 
-#endif /* INC_TASKSERVER_H_ */
+void connectWSV(void);
+void stopServer(void);
+
+#endif
